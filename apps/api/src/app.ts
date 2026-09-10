@@ -13,6 +13,7 @@ import { notFoundHandler } from './middleware/not-found.js';
 import { healthRouter } from './modules/health/health.routes.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { incidentRouter } from './modules/incidents/incident.routes.js';
+import { routeRouter } from './modules/routes/route.routes.js';
 
 export function createApp(): Express {
   const app = express();
@@ -37,6 +38,7 @@ export function createApp(): Express {
   app.use('/api/v1/health', healthRouter());
   app.use('/api/v1/auth', authRouter());
   app.use('/api/v1/incidents', incidentRouter());
+  app.use('/api/v1/routes', routeRouter());
 
   app.use(notFoundHandler);
   app.use(errorHandler);
