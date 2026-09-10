@@ -2,7 +2,7 @@
 
 SafeRoute is a community safety navigation platform that will recommend **fastest**, **balanced**, and **safest** routes using geospatial risk data and a dynamically weighted road graph.
 
-> Current status: Phases 1–5 are implemented. The interactive map experience is next in Phase 6.
+> Current status: Phases 1–6 are implemented. Real-time navigation updates are next in Phase 7.
 
 ## Technical identity
 
@@ -53,6 +53,10 @@ Kafka and an API gateway are intentionally excluded. PostgreSQL/PostGIS will han
 - periodic incident-expiry and category time-decay refresh jobs
 - a separately deployable background worker with graceful shutdown
 - Redis route-result caching with TTLs and graph-version invalidation
+- responsive route-planning workspace with a projected Noida road-network map
+- interactive Fastest, Balanced, and Safest route comparison with risk summaries
+- nearby community-incident visualization and route warning counts
+- session restoration, sign-in/registration, and authenticated hazard submission
 
 ## Core API
 
@@ -117,6 +121,12 @@ Reports affect active roads within `100 + severity × 120` metres. Reports of th
 Incident create, evaluation, and moderation requests enqueue BullMQ jobs instead of recalculating every nearby road inside the HTTP request. The worker retries transient failures with exponential backoff and retains exhausted jobs for diagnosis. A periodic maintenance job marks due reports as expired and refreshes every active report so category time decay continues to affect routing even when no user action occurs.
 
 Calculated routes are cached in Redis for 120 seconds. Cache keys include a graph-version value; after a risk job changes road weights, the worker increments that version. Old values expire naturally and can no longer be returned, avoiding blocking wildcard deletion.
+
+### Map experience
+
+The Next.js client opens directly on the route-planning workspace. It loads road nodes, calculates all three route preferences, projects route geometry into the network map, and overlays nearby community reports. Selecting a route updates its duration, distance, safety score, and high-risk warning count without another request.
+
+Hazard reporting uses the existing secure authentication flow. Access tokens stay in memory while the HTTP-only refresh cookie restores a returning session. A submitted report appears immediately on the map while BullMQ recalculates affected road risk in the background.
 
 ## Repository layout
 
@@ -183,7 +193,7 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 3. **Routing engine** — complete
 4. **Safety intelligence** — complete
 5. **Background processing** — complete
-6. **Map experience** — route comparison, rendering, report submission
+6. **Map experience** — complete
 7. **Real-time navigation** — high-risk updates and rerouting suggestions
 8. **Production hardening** — rate limits, metrics, indexes, performance tests
 
@@ -191,7 +201,7 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 
 - SQL is explicit and repository-based so spatial behavior is visible and not limited by an ORM’s geography support.
 - Redis is connected for readiness but caching and BullMQ are deferred until their domain behavior is known.
-- The landing screen communicates the product direction; an interactive map belongs to Phase 6.
+- The map is a dependency-free projection of the seeded road graph. A production deployment can replace this renderer with vector tiles while preserving the route and incident APIs.
 - Docker Compose uses local development credentials. Production credentials must come from a secret manager.
 - Incident writes and route-risk updates are eventually consistent because BullMQ keeps spatial recalculation off the HTTP request path.
 - Failed background jobs remain in Redis for diagnosis after five exponential-backoff attempts. A transactional outbox is a possible production-hardening addition when strict enqueue guarantees are required.

@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SafeRoute — Safer paths, informed by community',
+  title: 'SafeRoute — Compare safer routes',
   description:
-    'Safety-aware navigation powered by geospatial risk intelligence.',
+    'Compare fastest, balanced, and safest routes using live community risk signals.',
 };
 
 export default function RootLayout({
