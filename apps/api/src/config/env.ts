@@ -14,6 +14,17 @@ const envSchema = z
       .min(1)
       .default('postgresql://saferoute:saferoute@localhost:5432/saferoute'),
     REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
+    ROUTE_CACHE_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(3600)
+      .default(120),
+    INCIDENT_MAINTENANCE_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .min(60_000)
+      .default(300_000),
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
       .default('info'),

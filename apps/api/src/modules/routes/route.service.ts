@@ -12,15 +12,20 @@ import {
 } from '../../routing-engine/scoring/route-profiles.js';
 import type { CalculateRouteInput } from './route.schemas.js';
 import type { RoadGraphSource } from './road-graph.repository.js';
+import type { RouteResultCache } from './route-cache.js';
 
 export class RouteService {
   constructor(
     private readonly graphSource: RoadGraphSource,
     private readonly engine = new RouteEngine(),
+    private readonly cache?: RouteResultCache,
   ) {}
 
   async calculate(input: CalculateRouteInput): Promise<CalculatedRoute[]> {
     const startedAt = performance.now();
+    const cached = await this.cache?.get(input);
+    if (cached) return cached;
+
     const graph = await this.graphSource.load();
     if (!graph.getNode(input.originNodeId)) {
       throw new AppError(
@@ -72,6 +77,8 @@ export class RouteService {
       },
       'Safety-aware routes calculated',
     );
+
+    await this.cache?.set(input, routes);
 
     return routes;
   }

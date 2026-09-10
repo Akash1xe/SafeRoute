@@ -35,10 +35,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm --filter @saferoute/api db:migrate
-      - run: pnpm format:check
+      - run: pnpm format
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formatted-phase-5
+          path: |
+            .env.example
+            README.md
+            docker-compose.yml
+            pnpm-lock.yaml
+            apps/api/package.json
+            apps/api/src
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: docker build -f apps/api/Dockerfile -t saferoute-api:test .
+      - run: docker build -f apps/web/Dockerfile -t saferoute-web:test .

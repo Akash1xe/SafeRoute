@@ -15,11 +15,7 @@ import type {
   SegmentRiskSource,
 } from './safety.types.js';
 
-export interface IncidentRiskUpdater {
-  refreshIncident(reportId: string): Promise<SafetyRefreshResult>;
-}
-
-export class SafetyIntelligenceService implements IncidentRiskUpdater {
+export class SafetyIntelligenceService {
   constructor(
     private readonly repository: SafetyRiskRepository,
     private readonly clock: () => Date = () => new Date(),

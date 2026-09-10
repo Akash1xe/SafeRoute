@@ -14,38 +14,47 @@ async function migrate(): Promise<void> {
     .filter((file) => file.endsWith('.sql'))
     .sort();
 
-  await postgres.query(`
-    CREATE TABLE IF NOT EXISTS schema_migrations (
-      name TEXT PRIMARY KEY,
-      applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `);
+  const client = await postgres.connect();
+  await client.query(
+    "SELECT pg_advisory_lock(hashtext('saferoute_schema_migrations'))",
+  );
 
-  for (const migrationFile of migrationFiles) {
-    const alreadyApplied = await postgres.query<{ exists: boolean }>(
-      'SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE name = $1) AS exists',
-      [migrationFile],
-    );
+  try {
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS schema_migrations (
+        name TEXT PRIMARY KEY,
+        applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
 
-    if (alreadyApplied.rows[0]?.exists) continue;
-
-    const client = await postgres.connect();
-    try {
-      await client.query('BEGIN');
-      await client.query(
-        await readFile(path.join(migrationsDirectory, migrationFile), 'utf8'),
+    for (const migrationFile of migrationFiles) {
+      const alreadyApplied = await client.query<{ exists: boolean }>(
+        'SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE name = $1) AS exists',
+        [migrationFile],
       );
-      await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [
-        migrationFile,
-      ]);
-      await client.query('COMMIT');
-      logger.info({ migrationFile }, 'Database migration applied');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+
+      if (alreadyApplied.rows[0]?.exists) continue;
+
+      await client.query('BEGIN');
+      try {
+        await client.query(
+          await readFile(path.join(migrationsDirectory, migrationFile), 'utf8'),
+        );
+        await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [
+          migrationFile,
+        ]);
+        await client.query('COMMIT');
+        logger.info({ migrationFile }, 'Database migration applied');
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      }
     }
+  } finally {
+    await client.query(
+      "SELECT pg_advisory_unlock(hashtext('saferoute_schema_migrations'))",
+    );
+    client.release();
   }
 }
 

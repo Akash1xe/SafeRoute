@@ -3,6 +3,7 @@ import { Router as createRouter } from 'express';
 import { rateLimit } from 'express-rate-limit';
 
 import { postgres } from '../../infrastructure/database/postgres.js';
+import { SafetyJobDispatcher } from '../../infrastructure/jobs/safety-job.dispatcher.js';
 import {
   authenticate,
   authorize,
@@ -23,12 +24,10 @@ import {
 } from './incident.schemas.js';
 import { IncidentRepository } from './incident.repository.js';
 import { IncidentService } from './incident.service.js';
-import { SafetyRepository } from '../safety/safety.repository.js';
-import { SafetyIntelligenceService } from '../safety/safety.service.js';
 
 const incidents = new IncidentService(
   new IncidentRepository(postgres),
-  new SafetyIntelligenceService(new SafetyRepository(postgres)),
+  new SafetyJobDispatcher(),
 );
 
 const reportCreationLimiter = rateLimit({

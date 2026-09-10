@@ -1,11 +1,11 @@
 import { AppError } from '../../errors/app-error.js';
+import type { IncidentRiskScheduler } from '../../infrastructure/jobs/safety-job.dispatcher.js';
 import type { RequestIdentity } from '../../middleware/authenticate.js';
 import type {
   CreateIncidentInput,
   NearbyIncidentsInput,
 } from './incident.schemas.js';
 import type { IncidentRepository } from './incident.repository.js';
-import type { IncidentRiskUpdater } from '../safety/safety.service.js';
 import {
   toPublicIncident,
   type ConfirmationDecision,
@@ -16,7 +16,7 @@ import {
 export class IncidentService {
   constructor(
     private readonly incidents: IncidentRepository,
-    private readonly riskUpdater: IncidentRiskUpdater,
+    private readonly riskScheduler: IncidentRiskScheduler,
   ) {}
 
   async create(
@@ -24,8 +24,8 @@ export class IncidentService {
     input: CreateIncidentInput,
   ): Promise<PublicIncident> {
     const incident = await this.incidents.create(identity.userId, input);
-    await this.riskUpdater.refreshIncident(incident.id);
-    return this.get(incident.id);
+    await this.riskScheduler.scheduleIncidentRefresh(incident.id);
+    return toPublicIncident(incident);
   }
 
   async get(id: string): Promise<PublicIncident> {
@@ -53,8 +53,8 @@ export class IncidentService {
       identity.userId,
       decision,
     );
-    await this.riskUpdater.refreshIncident(incident.id);
-    return this.get(incident.id);
+    await this.riskScheduler.scheduleIncidentRefresh(incident.id);
+    return toPublicIncident(incident);
   }
 
   async moderate(
@@ -62,7 +62,7 @@ export class IncidentService {
     status: IncidentStatus,
   ): Promise<PublicIncident> {
     const incident = await this.incidents.updateStatus(reportId, status);
-    await this.riskUpdater.refreshIncident(incident.id);
-    return this.get(incident.id);
+    await this.riskScheduler.scheduleIncidentRefresh(incident.id);
+    return toPublicIncident(incident);
   }
 }

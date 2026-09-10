@@ -180,6 +180,28 @@ export class IncidentRepository {
       );
     return mapIncident(incident);
   }
+
+  async expireDueReports(): Promise<string[]> {
+    const result = await this.database.query<{ id: string }>(
+      `UPDATE incident_reports
+       SET status = 'EXPIRED', confidence_score = 0, updated_at = NOW()
+       WHERE status IN ('PENDING', 'VERIFIED')
+         AND expires_at IS NOT NULL
+         AND expires_at <= NOW()
+       RETURNING id`,
+    );
+    return result.rows.map((row) => row.id);
+  }
+
+  async listActiveReportIds(): Promise<string[]> {
+    const result = await this.database.query<{ id: string }>(
+      `SELECT id FROM incident_reports
+       WHERE status IN ('PENDING', 'VERIFIED')
+         AND (expires_at IS NULL OR expires_at > NOW())
+       ORDER BY id`,
+    );
+    return result.rows.map((row) => row.id);
+  }
 }
 
 async function updateDecisionCounts(

@@ -2,7 +2,7 @@
 
 SafeRoute is a community safety navigation platform that will recommend **fastest**, **balanced**, and **safest** routes using geospatial risk data and a dynamically weighted road graph.
 
-> Current status: Phases 1–4 are implemented. Background processing, expiry sweeps, and route caching are deferred to Phase 5.
+> Current status: Phases 1–5 are implemented. The interactive map experience is next in Phase 6.
 
 ## Technical identity
 
@@ -49,6 +49,10 @@ Kafka and an API gateway are intentionally excluded. PostgreSQL/PostGIS will han
 - severity-scaled PostGIS affected-road matching and explainable per-report risk sources
 - independent-union aggregation of live reports into separate dynamic road-risk layers
 - baseline and dynamic risk composition when loading the routing graph
+- BullMQ risk-recalculation jobs with exponential retries and retained failures
+- periodic incident-expiry and category time-decay refresh jobs
+- a separately deployable background worker with graceful shutdown
+- Redis route-result caching with TTLs and graph-version invalidation
 
 ## Core API
 
@@ -108,6 +112,12 @@ Community influence grows with participation, pending reports are capped at `0.8
 
 Reports affect active roads within `100 + severity × 120` metres. Reports of the same risk type are aggregated as `1 - product(1 - effectiveRisk)`, which captures compounding evidence without exceeding one. The resulting live layer is stored separately from the baseline map layer; routing composes them as `1 - (1 - baseline) × (1 - dynamic)`.
 
+### Background processing and caching
+
+Incident create, evaluation, and moderation requests enqueue BullMQ jobs instead of recalculating every nearby road inside the HTTP request. The worker retries transient failures with exponential backoff and retains exhausted jobs for diagnosis. A periodic maintenance job marks due reports as expired and refreshes every active report so category time decay continues to affect routing even when no user action occurs.
+
+Calculated routes are cached in Redis for 120 seconds. Cache keys include a graph-version value; after a risk job changes road weights, the worker increments that version. Old values expire naturally and can no longer be returned, avoiding blocking wildcard deletion.
+
 ## Repository layout
 
 ```text
@@ -136,6 +146,7 @@ pnpm install
 docker compose up -d postgres redis
 pnpm --filter @saferoute/api db:migrate
 pnpm dev
+pnpm --filter @saferoute/api dev:worker
 ```
 
 Open the web app at `http://localhost:3000`. The API listens at `http://localhost:4000`.
@@ -171,7 +182,7 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 2. **Authentication and incidents** — complete
 3. **Routing engine** — complete
 4. **Safety intelligence** — complete
-5. **Background processing** — BullMQ, risk recalculation, expiry, caching
+5. **Background processing** — complete
 6. **Map experience** — route comparison, rendering, report submission
 7. **Real-time navigation** — high-risk updates and rerouting suggestions
 8. **Production hardening** — rate limits, metrics, indexes, performance tests
@@ -182,8 +193,9 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 - Redis is connected for readiness but caching and BullMQ are deferred until their domain behavior is known.
 - The landing screen communicates the product direction; an interactive map belongs to Phase 6.
 - Docker Compose uses local development credentials. Production credentials must come from a secret manager.
-- Phase 4 recalculates affected roads synchronously after report changes so behavior is immediately consistent. BullMQ will move this work off the request path in Phase 5.
-- Phase 3 loads the small development graph as one in-memory adjacency list per request. Redis graph/version caching and bounded graph loading belong to Phase 5 and production-scale work.
+- Incident writes and route-risk updates are eventually consistent because BullMQ keeps spatial recalculation off the HTTP request path.
+- Failed background jobs remain in Redis for diagnosis after five exponential-backoff attempts. A transactional outbox is a possible production-hardening addition when strict enqueue guarantees are required.
+- Phase 5 still loads the small development graph as one in-memory adjacency list on a route-cache miss. Bounded graph loading belongs to production-scale work.
 
 ## Safety and privacy direction
 

@@ -4,6 +4,7 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { closePostgres } from './infrastructure/database/postgres.js';
+import { closeJobQueues } from './infrastructure/jobs/job-queues.js';
 import { closeRedis } from './infrastructure/redis/redis.js';
 
 const server = createServer(createApp());
@@ -17,6 +18,7 @@ async function shutdown(signal: NodeJS.Signals): Promise<void> {
 
   server.close(async (serverError) => {
     try {
+      await closeJobQueues();
       await Promise.all([closePostgres(), closeRedis()]);
       if (serverError) throw serverError;
       process.exit(0);

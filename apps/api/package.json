@@ -7,13 +7,16 @@
     "build": "tsc -p tsconfig.build.json",
     "db:migrate": "tsx src/infrastructure/database/migrate.ts",
     "dev": "tsx watch src/server.ts",
+    "dev:worker": "tsx watch src/worker.ts",
     "lint": "eslint src --max-warnings 0",
     "start": "node dist/server.js",
+    "start:worker": "node dist/worker.js",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@saferoute/shared": "workspace:*",
+    "bullmq": "^5.58.5",
     "cors": "^2.8.5",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
