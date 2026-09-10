@@ -12,6 +12,7 @@ import {
 } from './infrastructure/jobs/job-queues.js';
 import { closePostgres, postgres } from './infrastructure/database/postgres.js';
 import { closeRedis, redis } from './infrastructure/redis/redis.js';
+import { RealtimeEventPublisher } from './infrastructure/realtime/realtime-publisher.js';
 import { IncidentMaintenanceService } from './modules/incidents/incident-maintenance.service.js';
 import { IncidentRepository } from './modules/incidents/incident.repository.js';
 import { RedisRouteCache } from './modules/routes/route-cache.js';
@@ -24,12 +25,19 @@ const maintenance = new IncidentMaintenanceService(
   safety,
 );
 const routeCache = new RedisRouteCache(redis, env.ROUTE_CACHE_TTL_SECONDS);
+const realtime = new RealtimeEventPublisher(redis);
 
 const safetyWorker = new Worker<SafetyRefreshJobData>(
   safetyQueueName,
   async (job) => {
     const result = await safety.refreshIncident(job.data.reportId);
     await routeCache.invalidateGraph();
+    await realtime.publish({
+      type: 'SAFETY_RISK_UPDATED',
+      reportId: job.data.reportId,
+      affectedSegmentCount: result.affectedSegmentCount,
+      occurredAt: new Date().toISOString(),
+    });
     logger.info(
       { jobId: job.id, reportId: job.data.reportId, ...result },
       'Incident risk refreshed',
@@ -42,7 +50,14 @@ const maintenanceWorker = new Worker(
   maintenanceQueueName,
   async (job) => {
     const result = await maintenance.refreshTimeSensitiveRisk();
-    if (result.refreshedCount > 0) await routeCache.invalidateGraph();
+    if (result.refreshedCount > 0) {
+      await routeCache.invalidateGraph();
+      await realtime.publish({
+        type: 'SAFETY_NETWORK_REFRESHED',
+        ...result,
+        occurredAt: new Date().toISOString(),
+      });
+    }
     logger.info({ jobId: job.id, ...result }, 'Incident maintenance completed');
   },
   { connection: workerConnection(), concurrency: 1 },

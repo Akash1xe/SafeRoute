@@ -135,6 +135,19 @@ button:disabled {
   box-shadow: 0 0 0 4px rgba(93, 242, 182, 0.1);
 }
 
+.live-dot.connecting,
+.live-dot.reconnecting {
+  background: var(--amber);
+  box-shadow: 0 0 0 4px rgba(247, 185, 85, 0.1);
+  animation: connection-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes connection-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
 .report-button {
   gap: 0.55rem;
   min-height: 42px;
@@ -389,6 +402,66 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.reroute-banner {
+  min-height: 68px;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid rgba(247, 185, 85, 0.42);
+  border-radius: 0.9rem;
+  background: rgba(64, 43, 15, 0.92);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.8rem;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.22);
+}
+
+.reroute-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--amber);
+  color: #201505;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.reroute-banner > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.reroute-banner strong {
+  font-size: 0.9rem;
+}
+
+.reroute-banner small {
+  color: #d9c39a;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.accept-reroute {
+  min-height: 40px;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 0.65rem;
+  background: var(--amber);
+  color: #201505;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.dismiss-reroute {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  background: transparent;
+  color: #d9c39a;
+  font-size: 1.3rem;
 }
 
 .map-shell {
@@ -793,6 +866,19 @@ button:disabled {
 
   .map-shell {
     min-height: 390px;
+  }
+
+  .reroute-banner {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .accept-reroute {
+    grid-column: 1 / -1;
+  }
+
+  .dismiss-reroute {
+    grid-column: 3;
+    grid-row: 1;
   }
 
   .node-label {

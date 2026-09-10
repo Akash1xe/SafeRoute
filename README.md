@@ -2,7 +2,7 @@
 
 SafeRoute is a community safety navigation platform that will recommend **fastest**, **balanced**, and **safest** routes using geospatial risk data and a dynamically weighted road graph.
 
-> Current status: Phases 1–6 are implemented. Real-time navigation updates are next in Phase 7.
+> Current status: Phases 1–7 are implemented. Production hardening is next in Phase 8.
 
 ## Technical identity
 
@@ -57,6 +57,10 @@ Kafka and an API gateway are intentionally excluded. PostgreSQL/PostGIS will han
 - interactive Fastest, Balanced, and Safest route comparison with risk summaries
 - nearby community-incident visualization and route warning counts
 - session restoration, sign-in/registration, and authenticated hazard submission
+- Redis Pub/Sub safety events shared across worker and API instances
+- origin-checked WebSocket gateway with heartbeat-based stale-client cleanup
+- browser reconnection with bounded exponential backoff and live status feedback
+- user-controlled rerouting suggestions when the safest path changes
 
 ## Core API
 
@@ -76,6 +80,7 @@ PATCH /api/v1/incidents/:id/status
 
 GET   /api/v1/routes/nodes
 POST  /api/v1/routes/calculate
+WS    /api/v1/realtime
 ```
 
 Access tokens are returned in the response body and sent as `Authorization: Bearer <token>`.
@@ -127,6 +132,12 @@ Calculated routes are cached in Redis for 120 seconds. Cache keys include a grap
 The Next.js client opens directly on the route-planning workspace. It loads road nodes, calculates all three route preferences, projects route geometry into the network map, and overlays nearby community reports. Selecting a route updates its duration, distance, safety score, and high-risk warning count without another request.
 
 Hazard reporting uses the existing secure authentication flow. Access tokens stay in memory while the HTTP-only refresh cookie restores a returning session. A submitted report appears immediately on the map while BullMQ recalculates affected road risk in the background.
+
+### Real-time navigation
+
+After a background job commits new road risk, the worker invalidates route caches and publishes a safety event through Redis. Every API instance subscribes to that channel and broadcasts the event to connected browsers over `/api/v1/realtime`. The gateway validates browser origins and removes stale connections with WebSocket ping/pong heartbeats.
+
+The client reconnects with bounded exponential backoff. On a safety event it fetches fresh route and incident data. If the newly calculated safest path differs from the current path, the user receives a clear rerouting suggestion and chooses whether to apply it.
 
 ## Repository layout
 
@@ -194,14 +205,15 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 4. **Safety intelligence** — complete
 5. **Background processing** — complete
 6. **Map experience** — complete
-7. **Real-time navigation** — high-risk updates and rerouting suggestions
+7. **Real-time navigation** — complete
 8. **Production hardening** — rate limits, metrics, indexes, performance tests
 
 ## Current trade-offs
 
 - SQL is explicit and repository-based so spatial behavior is visible and not limited by an ORM’s geography support.
-- Redis is connected for readiness but caching and BullMQ are deferred until their domain behavior is known.
+- Redis supports route caching, BullMQ, and cross-instance real-time safety events.
 - The map is a dependency-free projection of the seeded road graph. A production deployment can replace this renderer with vector tiles while preserving the route and incident APIs.
+- Phase 7 broadcasts network-wide safety invalidations. Geographic WebSocket rooms are a production optimization once the graph covers a larger service area.
 - Docker Compose uses local development credentials. Production credentials must come from a secret manager.
 - Incident writes and route-risk updates are eventually consistent because BullMQ keeps spatial recalculation off the HTTP request path.
 - Failed background jobs remain in Redis for diagnosis after five exponential-backoff attempts. A transactional outbox is a possible production-hardening addition when strict enqueue guarantees are required.

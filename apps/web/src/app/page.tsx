@@ -5,10 +5,12 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
 import { RouteMap } from '../components/route-map';
+import { useRealtimeSafety } from '../hooks/use-realtime-safety';
 import {
   authenticate,
   calculateRoutes,
@@ -17,6 +19,7 @@ import {
   getNodes,
   restoreSession,
 } from '../lib/api';
+import { shouldSuggestReroute } from '../lib/rerouting';
 import {
   incidentCategories,
   type CalculatedRoute,
@@ -96,6 +99,10 @@ export default function Home() {
   const [reportOpen, setReportOpen] = useState(false);
   const [user, setUser] = useState<PublicUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [suggestedRoutes, setSuggestedRoutes] = useState<
+    CalculatedRoute[] | null
+  >(null);
+  const realtimeRefreshRunning = useRef(false);
 
   const loadSafetyContext = useCallback(async (availableNodes: RoadNode[]) => {
     const center =
@@ -116,6 +123,7 @@ export default function Home() {
         return;
       }
       setLoading(true);
+      setSuggestedRoutes(null);
       setNotice('Calculating safety-aware routes…');
       try {
         const results = await calculateRoutes(from, to);
@@ -172,6 +180,38 @@ export default function Home() {
     [routes, selectedPreference],
   );
 
+  const handleSafetyEvent = useCallback(async () => {
+    if (realtimeRefreshRunning.current) return;
+    realtimeRefreshRunning.current = true;
+    try {
+      const latestRoutes = await calculateRoutes(originId, destinationId);
+      await loadSafetyContext(nodes);
+      const currentRoute = routes.find(
+        (route) => route.preference === selectedPreference,
+      );
+      if (shouldSuggestReroute(currentRoute, latestRoutes)) {
+        setSuggestedRoutes(latestRoutes);
+        setNotice('Safety conditions changed near this trip.');
+      } else {
+        setRoutes(latestRoutes);
+        setNotice('Route safety scores updated from the community network.');
+      }
+    } catch {
+      setNotice('A safety update arrived. Refresh routes to review it.');
+    } finally {
+      realtimeRefreshRunning.current = false;
+    }
+  }, [
+    destinationId,
+    loadSafetyContext,
+    nodes,
+    originId,
+    routes,
+    selectedPreference,
+  ]);
+
+  const realtimeState = useRealtimeSafety(handleSafetyEvent);
+
   function swapLocations() {
     setOriginId(destinationId);
     setDestinationId(originId);
@@ -187,7 +227,10 @@ export default function Home() {
         </a>
         <div className="topbar-status">
           <span className="network-status">
-            <span className="live-dot" /> Safety network active
+            <span className={`live-dot ${realtimeState}`} />{' '}
+            {realtimeState === 'connected'
+              ? 'Live safety updates on'
+              : 'Reconnecting safety updates'}
           </span>
           <button className="report-button" onClick={() => setReportOpen(true)}>
             <span>+</span> Report a hazard
@@ -290,6 +333,36 @@ export default function Home() {
         </aside>
 
         <section className="map-panel">
+          {suggestedRoutes ? (
+            <div className="reroute-banner" role="status">
+              <span className="reroute-icon">!</span>
+              <span>
+                <strong>A safer route is available</strong>
+                <small>
+                  Community risk changed near your trip. Review the updated
+                  safest path.
+                </small>
+              </span>
+              <button
+                className="accept-reroute"
+                onClick={() => {
+                  setRoutes(suggestedRoutes);
+                  setSelectedPreference('SAFEST');
+                  setSuggestedRoutes(null);
+                  setNotice('Updated safest route applied.');
+                }}
+              >
+                Use safer route
+              </button>
+              <button
+                className="dismiss-reroute"
+                onClick={() => setSuggestedRoutes(null)}
+                aria-label="Dismiss rerouting suggestion"
+              >
+                ×
+              </button>
+            </div>
+          ) : null}
           <RouteMap
             nodes={nodes}
             routes={routes}

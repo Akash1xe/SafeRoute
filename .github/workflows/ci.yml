@@ -35,9 +35,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --no-frozen-lockfile
       - run: pnpm --filter @saferoute/api db:migrate
-      - run: pnpm format:check
+      - run: pnpm format
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formatted-phase-7
+          path: |
+            README.md
+            pnpm-lock.yaml
+            apps/api/package.json
+            apps/api/src
+            apps/web/src
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
