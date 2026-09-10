@@ -23,8 +23,13 @@ import {
 } from './incident.schemas.js';
 import { IncidentRepository } from './incident.repository.js';
 import { IncidentService } from './incident.service.js';
+import { SafetyRepository } from '../safety/safety.repository.js';
+import { SafetyIntelligenceService } from '../safety/safety.service.js';
 
-const incidents = new IncidentService(new IncidentRepository(postgres));
+const incidents = new IncidentService(
+  new IncidentRepository(postgres),
+  new SafetyIntelligenceService(new SafetyRepository(postgres)),
+);
 
 const reportCreationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

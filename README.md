@@ -2,7 +2,7 @@
 
 SafeRoute is a community safety navigation platform that will recommend **fastest**, **balanced**, and **safest** routes using geospatial risk data and a dynamically weighted road graph.
 
-> Current status: Phases 1–3 are implemented. Safety confidence and time-decay intelligence are deliberately deferred to Phase 4.
+> Current status: Phases 1–4 are implemented. Background processing, expiry sweeps, and route caching are deferred to Phase 5.
 
 ## Technical identity
 
@@ -43,6 +43,12 @@ Kafka and an API gateway are intentionally excluded. PostgreSQL/PostGIS will han
 - configurable `FASTEST`, `BALANCED`, and `SAFEST` optimization profiles
 - distance-weighted safety scores, route warnings, geometry, duration, and search metrics
 - PostGIS road-node and road-segment schema with a demonstrable Noida seed graph
+- trust-, evidence-, community-, and moderation-aware incident confidence scoring
+- category-specific exponential time decay for transient and persistent hazards
+- severity × confidence × time-decay effective-risk calculation
+- severity-scaled PostGIS affected-road matching and explainable per-report risk sources
+- independent-union aggregation of live reports into separate dynamic road-risk layers
+- baseline and dynamic risk composition when loading the routing graph
 
 ## Core API
 
@@ -86,6 +92,21 @@ edgeCost =
 ```
 
 Multiplying risk by distance models exposure and prevents road segmentation from changing a route’s total risk. The A* heuristic uses only weighted straight-line distance, so it never adds an unproven safety cost and remains admissible.
+
+### Safety intelligence
+
+Each active report contributes an effective risk to nearby road segments:
+
+```text
+confidence =
+  50% reporter trust + 35% community signal + 15% evidence signal
+
+effectiveRisk = severity / 5 × confidence × categoryTimeDecay
+```
+
+Community influence grows with participation, pending reports are capped at `0.85`, verified reports have a `0.90` floor, and rejected or expired reports contribute zero. Time decay uses category-specific half-lives: accidents decay in hours, closures and weather hazards in days, while lighting and isolation concerns persist for months.
+
+Reports affect active roads within `100 + severity × 120` metres. Reports of the same risk type are aggregated as `1 - product(1 - effectiveRisk)`, which captures compounding evidence without exceeding one. The resulting live layer is stored separately from the baseline map layer; routing composes them as `1 - (1 - baseline) × (1 - dynamic)`.
 
 ## Repository layout
 
@@ -149,7 +170,7 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 1. **Foundation** — complete
 2. **Authentication and incidents** — complete
 3. **Routing engine** — complete
-4. **Safety intelligence** — confidence, confirmation, time decay, affected-road calculations
+4. **Safety intelligence** — complete
 5. **Background processing** — BullMQ, risk recalculation, expiry, caching
 6. **Map experience** — route comparison, rendering, report submission
 7. **Real-time navigation** — high-risk updates and rerouting suggestions
@@ -161,7 +182,7 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 - Redis is connected for readiness but caching and BullMQ are deferred until their domain behavior is known.
 - The landing screen communicates the product direction; an interactive map belongs to Phase 6.
 - Docker Compose uses local development credentials. Production credentials must come from a secret manager.
-- Confirmation counters are maintained now, while confidence scoring and time decay intentionally belong to Phase 4.
+- Phase 4 recalculates affected roads synchronously after report changes so behavior is immediately consistent. BullMQ will move this work off the request path in Phase 5.
 - Phase 3 loads the small development graph as one in-memory adjacency list per request. Redis graph/version caching and bounded graph loading belong to Phase 5 and production-scale work.
 
 ## Safety and privacy direction

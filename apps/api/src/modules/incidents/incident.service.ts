@@ -5,6 +5,7 @@ import type {
   NearbyIncidentsInput,
 } from './incident.schemas.js';
 import type { IncidentRepository } from './incident.repository.js';
+import type { IncidentRiskUpdater } from '../safety/safety.service.js';
 import {
   toPublicIncident,
   type ConfirmationDecision,
@@ -13,15 +14,18 @@ import {
 } from './incident.types.js';
 
 export class IncidentService {
-  constructor(private readonly incidents: IncidentRepository) {}
+  constructor(
+    private readonly incidents: IncidentRepository,
+    private readonly riskUpdater: IncidentRiskUpdater,
+  ) {}
 
   async create(
     identity: RequestIdentity,
     input: CreateIncidentInput,
   ): Promise<PublicIncident> {
-    return toPublicIncident(
-      await this.incidents.create(identity.userId, input),
-    );
+    const incident = await this.incidents.create(identity.userId, input);
+    await this.riskUpdater.refreshIncident(incident.id);
+    return this.get(incident.id);
   }
 
   async get(id: string): Promise<PublicIncident> {
@@ -44,17 +48,21 @@ export class IncidentService {
     reportId: string,
     decision: ConfirmationDecision,
   ): Promise<PublicIncident> {
-    return toPublicIncident(
-      await this.incidents.recordDecision(reportId, identity.userId, decision),
+    const incident = await this.incidents.recordDecision(
+      reportId,
+      identity.userId,
+      decision,
     );
+    await this.riskUpdater.refreshIncident(incident.id);
+    return this.get(incident.id);
   }
 
   async moderate(
     reportId: string,
     status: IncidentStatus,
   ): Promise<PublicIncident> {
-    return toPublicIncident(
-      await this.incidents.updateStatus(reportId, status),
-    );
+    const incident = await this.incidents.updateStatus(reportId, status);
+    await this.riskUpdater.refreshIncident(incident.id);
+    return this.get(incident.id);
   }
 }

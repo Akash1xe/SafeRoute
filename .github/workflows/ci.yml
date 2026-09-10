@@ -37,7 +37,18 @@ jobs:
           node-version: 22
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @saferoute/api db:migrate
-      - run: pnpm format:check
+      - run: pnpm format
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formatted-phase-4
+          path: |
+            README.md
+            apps/api/migrations/004_safety_intelligence.sql
+            apps/api/src/modules/incidents/incident.routes.ts
+            apps/api/src/modules/incidents/incident.service.test.ts
+            apps/api/src/modules/incidents/incident.service.ts
+            apps/api/src/modules/routes/road-graph.repository.ts
+            apps/api/src/modules/safety
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test

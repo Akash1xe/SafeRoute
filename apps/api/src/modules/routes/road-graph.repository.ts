@@ -40,8 +40,13 @@ export class RoadGraphRepository implements RoadGraphSource {
       this.listNodes(),
       this.database.query<EdgeRow>(`
         SELECT id, source_node_id, destination_node_id, distance_meters,
-          duration_seconds, is_bidirectional, lighting_risk, incident_risk,
-          isolation_risk, accident_risk, temporary_hazard_risk
+          duration_seconds, is_bidirectional,
+          1 - (1 - lighting_risk) * (1 - dynamic_lighting_risk) AS lighting_risk,
+          1 - (1 - incident_risk) * (1 - dynamic_incident_risk) AS incident_risk,
+          1 - (1 - isolation_risk) * (1 - dynamic_isolation_risk) AS isolation_risk,
+          1 - (1 - accident_risk) * (1 - dynamic_accident_risk) AS accident_risk,
+          1 - (1 - temporary_hazard_risk) *
+            (1 - dynamic_temporary_hazard_risk) AS temporary_hazard_risk
         FROM road_segments
         WHERE is_active = TRUE
       `),

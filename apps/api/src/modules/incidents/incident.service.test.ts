@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { IncidentService } from './incident.service.js';
 import type { IncidentRepository } from './incident.repository.js';
 import type { Incident } from './incident.types.js';
+import type { IncidentRiskUpdater } from '../safety/safety.service.js';
 
 const incident: Incident = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -26,7 +27,10 @@ describe('incident service privacy', () => {
     const repository = {
       findById: vi.fn().mockResolvedValue(incident),
     } as unknown as IncidentRepository;
-    const service = new IncidentService(repository);
+    const riskUpdater = {
+      refreshIncident: vi.fn(),
+    } as unknown as IncidentRiskUpdater;
+    const service = new IncidentService(repository, riskUpdater);
 
     const result = await service.get(incident.id);
 
