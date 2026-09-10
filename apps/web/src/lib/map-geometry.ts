@@ -33,10 +33,7 @@ export function calculateBounds(
   const minLongitude = Math.min(...longitudes);
   const maxLongitude = Math.max(...longitudes);
   const latitudeMargin = Math.max((maxLatitude - minLatitude) * 0.18, 0.001);
-  const longitudeMargin = Math.max(
-    (maxLongitude - minLongitude) * 0.14,
-    0.001,
-  );
+  const longitudeMargin = Math.max((maxLongitude - minLongitude) * 0.14, 0.001);
 
   return {
     minLatitude: minLatitude - latitudeMargin,

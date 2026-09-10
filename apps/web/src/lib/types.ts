@@ -14,11 +14,7 @@ export interface RoadNode extends Coordinates {
 export interface RouteWarning {
   edgeId: string;
   factor:
-    | 'lighting'
-    | 'incident'
-    | 'isolation'
-    | 'accident'
-    | 'temporaryHazard';
+    'lighting' | 'incident' | 'isolation' | 'accident' | 'temporaryHazard';
   level: number;
 }
 

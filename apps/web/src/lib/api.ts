@@ -19,9 +19,8 @@ export interface AuthResult {
 }
 
 export async function getNodes(): Promise<RoadNode[]> {
-  const response = await request<ApiEnvelope<{ nodes: RoadNode[] }>>(
-    '/routes/nodes',
-  );
+  const response =
+    await request<ApiEnvelope<{ nodes: RoadNode[] }>>('/routes/nodes');
   return response.data.nodes;
 }
 
@@ -106,9 +105,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers,
   });
 
-  const payload = (await response.json().catch(() => null)) as
-    | { error?: { message?: string } }
-    | null;
+  const payload = (await response.json().catch(() => null)) as {
+    error?: { message?: string };
+  } | null;
   if (!response.ok) {
     throw new Error(
       payload?.error?.message ?? 'The request could not be completed',

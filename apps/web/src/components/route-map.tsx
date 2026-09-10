@@ -72,13 +72,7 @@ export function RouteMap({
               strokeWidth="1"
             />
           </pattern>
-          <filter
-            id="route-glow"
-            x="-30%"
-            y="-30%"
-            width="160%"
-            height="160%"
-          >
+          <filter id="route-glow" x="-30%" y="-30%" width="160%" height="160%">
             <feGaussianBlur stdDeviation="5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
@@ -145,10 +139,7 @@ export function RouteMap({
         {incidents.map((incident) => {
           const point = projectPoint(incident, bounds);
           return (
-            <g
-              key={incident.id}
-              transform={`translate(${point.x} ${point.y})`}
-            >
+            <g key={incident.id} transform={`translate(${point.x} ${point.y})`}>
               <circle r="14" className="incident-pulse" />
               <circle r="7" className="incident-dot" />
               <title>{`${incident.category.replaceAll('_', ' ')} · severity ${incident.severity}`}</title>

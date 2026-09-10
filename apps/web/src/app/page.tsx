@@ -1,6 +1,12 @@
 'use client';
 
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
 import { RouteMap } from '../components/route-map';
 import {
@@ -97,9 +103,7 @@ export default function Home() {
       availableNodes[0];
     if (!center) return;
     try {
-      setIncidents(
-        await getNearbyIncidents(center.latitude, center.longitude),
-      );
+      setIncidents(await getNearbyIncidents(center.latitude, center.longitude));
     } catch {
       setIncidents([]);
     }
@@ -116,9 +120,7 @@ export default function Home() {
       try {
         const results = await calculateRoutes(from, to);
         setRoutes(results);
-        if (
-          !results.some((route) => route.preference === selectedPreference)
-        ) {
+        if (!results.some((route) => route.preference === selectedPreference)) {
           setSelectedPreference(results[0]?.preference ?? 'SAFEST');
         }
         setNotice(
@@ -187,10 +189,7 @@ export default function Home() {
           <span className="network-status">
             <span className="live-dot" /> Safety network active
           </span>
-          <button
-            className="report-button"
-            onClick={() => setReportOpen(true)}
-          >
+          <button className="report-button" onClick={() => setReportOpen(true)}>
             <span>+</span> Report a hazard
           </button>
         </div>
@@ -350,10 +349,7 @@ interface ReportDialogProps {
   nodes: RoadNode[];
   user: PublicUser | null;
   accessToken: string | null;
-  onAuthenticated: (result: {
-    user: PublicUser;
-    accessToken: string;
-  }) => void;
+  onAuthenticated: (result: { user: PublicUser; accessToken: string }) => void;
   onCreated: (incident: Incident) => void;
   onClose: () => void;
 }
@@ -545,11 +541,7 @@ function ReportDialog({
             <div className="form-grid">
               <label>
                 <span>Hazard type</span>
-                <select
-                  name="category"
-                  defaultValue="POOR_LIGHTING"
-                  autoFocus
-                >
+                <select name="category" defaultValue="POOR_LIGHTING" autoFocus>
                   {incidentCategories.map((category) => (
                     <option key={category} value={category}>
                       {categoryLabels[category]}
