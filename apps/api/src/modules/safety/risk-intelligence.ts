@@ -23,7 +23,9 @@ export function calculateEffectiveRisk(
 }
 
 export function aggregateIndependentRisks(risks: readonly number[]): number {
-  return 1 - risks.reduce((remaining, risk) => remaining * (1 - clamp(risk)), 1);
+  return (
+    1 - risks.reduce((remaining, risk) => remaining * (1 - clamp(risk)), 1)
+  );
 }
 
 function clamp(value: number): number {

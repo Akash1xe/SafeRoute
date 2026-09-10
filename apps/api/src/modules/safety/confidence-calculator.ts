@@ -16,8 +16,7 @@ export function calculateConfidence(input: ConfidenceInput): number {
   const participation = confirmations + disputes;
   const communitySignal = (confirmations + 1) / (participation + 2);
   const participationWeight = 1 - Math.exp(-participation / 3);
-  const adjustedCommunity =
-    0.5 + (communitySignal - 0.5) * participationWeight;
+  const adjustedCommunity = 0.5 + (communitySignal - 0.5) * participationWeight;
   const evidenceScore = input.hasEvidence ? 1 : 0.2;
   const reporterTrust = clamp(input.reporterTrustScore);
   const calculated =

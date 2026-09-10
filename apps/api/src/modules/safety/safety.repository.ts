@@ -105,12 +105,14 @@ export class SafetyRepository implements SafetyRiskRepository {
     const client = await this.database.connect();
     try {
       await client.query('BEGIN');
-      await client.query('SELECT id FROM road_segments WHERE id = $1 FOR UPDATE', [
-        segmentId,
-      ]);
-      await client.query('DELETE FROM segment_risk_sources WHERE segment_id = $1', [
-        segmentId,
-      ]);
+      await client.query(
+        'SELECT id FROM road_segments WHERE id = $1 FOR UPDATE',
+        [segmentId],
+      );
+      await client.query(
+        'DELETE FROM segment_risk_sources WHERE segment_id = $1',
+        [segmentId],
+      );
       await insertSources(client, segmentId, sources, calculatedAt);
       await client.query(
         `UPDATE road_segments SET

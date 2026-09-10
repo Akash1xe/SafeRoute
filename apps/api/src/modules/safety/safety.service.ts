@@ -6,10 +6,7 @@ import {
   calculateEffectiveRisk,
   categoryRiskFactor,
 } from './risk-intelligence.js';
-import {
-  riskFactors,
-  type SafetyRiskRepository,
-} from './safety.repository.js';
+import { riskFactors, type SafetyRiskRepository } from './safety.repository.js';
 import { categoryTimeDecay } from './time-decay.js';
 import type {
   DynamicRisk,

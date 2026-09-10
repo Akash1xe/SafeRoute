@@ -48,7 +48,9 @@ function createRepository(): SafetyRiskRepository {
   return {
     getReportContext: vi.fn().mockResolvedValue(report),
     updateConfidence: vi.fn(),
-    findAffectedSegmentIds: vi.fn().mockResolvedValue(['segment-a', 'segment-b']),
+    findAffectedSegmentIds: vi
+      .fn()
+      .mockResolvedValue(['segment-a', 'segment-b']),
     listActiveReportsForSegment: vi.fn().mockResolvedValue([report]),
     replaceSegmentRisk: vi.fn(),
   };
