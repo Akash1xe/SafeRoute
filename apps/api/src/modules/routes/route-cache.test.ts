@@ -27,9 +27,7 @@ describe('Redis route cache', () => {
       'EX',
       120,
     );
-    expect(client.incr).toHaveBeenCalledWith(
-      'saferoute:routing:graph-version',
-    );
+    expect(client.incr).toHaveBeenCalledWith('saferoute:routing:graph-version');
   });
 
   it('treats Redis failures as cache misses', async () => {

@@ -15,11 +15,13 @@ async function migrate(): Promise<void> {
     .sort();
 
   const client = await postgres.connect();
-  await client.query(
-    "SELECT pg_advisory_lock(hashtext('saferoute_schema_migrations'))",
-  );
+  let lockAcquired = false;
 
   try {
+    await client.query(
+      "SELECT pg_advisory_lock(hashtext('saferoute_schema_migrations'))",
+    );
+    lockAcquired = true;
     await client.query(`
       CREATE TABLE IF NOT EXISTS schema_migrations (
         name TEXT PRIMARY KEY,
@@ -51,10 +53,15 @@ async function migrate(): Promise<void> {
       }
     }
   } finally {
-    await client.query(
-      "SELECT pg_advisory_unlock(hashtext('saferoute_schema_migrations'))",
-    );
-    client.release();
+    try {
+      if (lockAcquired) {
+        await client.query(
+          "SELECT pg_advisory_unlock(hashtext('saferoute_schema_migrations'))",
+        );
+      }
+    } finally {
+      client.release();
+    }
   }
 }
 

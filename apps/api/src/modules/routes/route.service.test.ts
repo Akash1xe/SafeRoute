@@ -44,11 +44,10 @@ describe('route service', () => {
       invalidateGraph: vi.fn(),
     };
 
-    const result = await new RouteService(
-      source,
-      undefined,
-      cache,
-    ).calculate({ originNodeId: 'a', destinationNodeId: 'b' });
+    const result = await new RouteService(source, undefined, cache).calculate({
+      originNodeId: 'a',
+      destinationNodeId: 'b',
+    });
 
     expect(result).toEqual([cachedRoute]);
     expect(source.load).not.toHaveBeenCalled();

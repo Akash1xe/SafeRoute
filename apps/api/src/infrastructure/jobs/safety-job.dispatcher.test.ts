@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { SafetyJobDispatcher, type SafetyJobQueue } from './safety-job.dispatcher.js';
+import {
+  SafetyJobDispatcher,
+  type SafetyJobQueue,
+} from './safety-job.dispatcher.js';
 
 describe('safety job dispatcher', () => {
   it('enqueues a retryable incident-risk refresh', async () => {
