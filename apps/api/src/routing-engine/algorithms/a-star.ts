@@ -44,7 +44,12 @@ export function aStar(
 
     exploredNodes += 1;
     if (currentEntry.value === destinationId) {
-      return reconstructPath(destinationId, previousEdge, currentCost, exploredNodes);
+      return reconstructPath(
+        destinationId,
+        previousEdge,
+        currentCost,
+        exploredNodes,
+      );
     }
 
     for (const edge of graph.getNeighbors(currentEntry.value)) {
@@ -54,7 +59,8 @@ export function aStar(
       }
 
       const candidateCost = currentCost + edgeCost;
-      if (candidateCost >= (costFromOrigin.get(edge.destination) ?? Infinity)) continue;
+      if (candidateCost >= (costFromOrigin.get(edge.destination) ?? Infinity))
+        continue;
 
       costFromOrigin.set(edge.destination, candidateCost);
       previousEdge.set(edge.destination, edge);

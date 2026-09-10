@@ -13,8 +13,12 @@ export const defaultRiskWeights: RiskWeights = {
 
 export class RiskCalculator {
   constructor(private readonly weights: RiskWeights = defaultRiskWeights) {
-    const total = Object.values(weights).reduce((sum, weight) => sum + weight, 0);
-    if (Math.abs(total - 1) > 0.000001) throw new Error('Risk weights must add up to 1');
+    const total = Object.values(weights).reduce(
+      (sum, weight) => sum + weight,
+      0,
+    );
+    if (Math.abs(total - 1) > 0.000001)
+      throw new Error('Risk weights must add up to 1');
   }
 
   calculate(risk: EdgeRisk): number {

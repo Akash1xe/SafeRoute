@@ -17,7 +17,9 @@ const routeCalculationLimiter = rateLimit({
   limit: 60,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { error: { code: 'RATE_LIMITED', message: 'Too many route calculations' } },
+  message: {
+    error: { code: 'RATE_LIMITED', message: 'Too many route calculations' },
+  },
 });
 
 export function routeRouter(): Router {
@@ -26,7 +28,9 @@ export function routeRouter(): Router {
   router.get(
     '/nodes',
     asyncHandler(async (_request, response) => {
-      response.status(200).json({ data: { nodes: await graphRepository.listNodes() } });
+      response
+        .status(200)
+        .json({ data: { nodes: await graphRepository.listNodes() } });
     }),
   );
 
@@ -35,7 +39,9 @@ export function routeRouter(): Router {
     routeCalculationLimiter,
     validateBody(calculateRouteSchema),
     asyncHandler(async (request, response) => {
-      response.status(200).json({ data: { routes: await routes.calculate(request.body) } });
+      response
+        .status(200)
+        .json({ data: { routes: await routes.calculate(request.body) } });
     }),
   );
 

@@ -43,12 +43,19 @@ export class RouteEngine {
     const profile = routeProfiles[preference];
     const path = aStar(graph, originId, destinationId, {
       edgeCost: (edge) => this.edgeCosts.calculate(edge, profile),
-      heuristic: (nodeId, targetId) => this.heuristic(graph, nodeId, targetId, profile),
+      heuristic: (nodeId, targetId) =>
+        this.heuristic(graph, nodeId, targetId, profile),
     });
     if (!path) return null;
 
-    const distanceMeters = path.edges.reduce((sum, edge) => sum + edge.distanceMeters, 0);
-    const durationSeconds = path.edges.reduce((sum, edge) => sum + edge.durationSeconds, 0);
+    const distanceMeters = path.edges.reduce(
+      (sum, edge) => sum + edge.distanceMeters,
+      0,
+    );
+    const durationSeconds = path.edges.reduce(
+      (sum, edge) => sum + edge.durationSeconds,
+      0,
+    );
     const averageRisk = this.distanceWeightedRisk(path.edges, distanceMeters);
 
     return {
@@ -56,7 +63,9 @@ export class RouteEngine {
       nodeIds: path.nodeIds,
       geometry: path.nodeIds.flatMap((nodeId) => {
         const node = graph.getNode(nodeId);
-        return node ? [{ latitude: node.latitude, longitude: node.longitude }] : [];
+        return node
+          ? [{ latitude: node.latitude, longitude: node.longitude }]
+          : [];
       }),
       distanceMeters,
       durationSeconds,
@@ -79,12 +88,18 @@ export class RouteEngine {
     return profile.distanceWeight * haversineDistance(node, destination);
   }
 
-  private distanceWeightedRisk(edges: GraphEdge[], totalDistance: number): number {
+  private distanceWeightedRisk(
+    edges: GraphEdge[],
+    totalDistance: number,
+  ): number {
     if (totalDistance === 0) return 0;
-    return edges.reduce(
-      (sum, edge) => sum + this.risks.calculate(edge.risk) * edge.distanceMeters,
-      0,
-    ) / totalDistance;
+    return (
+      edges.reduce(
+        (sum, edge) =>
+          sum + this.risks.calculate(edge.risk) * edge.distanceMeters,
+        0,
+      ) / totalDistance
+    );
   }
 
   private collectWarnings(edges: GraphEdge[]): RouteWarning[] {

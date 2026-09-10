@@ -14,7 +14,10 @@ export class EdgeCostCalculator {
     const risk = this.riskCalculator.calculate(edge.risk);
     return (
       profile.distanceWeight * edge.distanceMeters +
-      profile.safetyWeight * risk * edge.distanceMeters * this.riskDistanceMultiplier
+      profile.safetyWeight *
+        risk *
+        edge.distanceMeters *
+        this.riskDistanceMultiplier
     );
   }
 }

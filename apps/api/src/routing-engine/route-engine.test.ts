@@ -36,7 +36,12 @@ describe('safety-aware route engine', () => {
   });
 
   it('returns high-risk warnings without leaking scoring logic into A*', () => {
-    const result = new RouteEngine().calculate(createChoiceGraph(), 'A', 'D', 'FASTEST');
+    const result = new RouteEngine().calculate(
+      createChoiceGraph(),
+      'A',
+      'D',
+      'FASTEST',
+    );
 
     expect(result?.warnings).toContainEqual({
       edgeId: 'A-B',

@@ -5,7 +5,8 @@ export class RoadGraph {
   private readonly adjacency = new Map<string, GraphEdge[]>();
 
   addNode(node: GraphNode): void {
-    if (this.nodes.has(node.id)) throw new Error(`Duplicate graph node: ${node.id}`);
+    if (this.nodes.has(node.id))
+      throw new Error(`Duplicate graph node: ${node.id}`);
     this.nodes.set(node.id, node);
     this.adjacency.set(node.id, []);
   }
@@ -15,7 +16,9 @@ export class RoadGraph {
       throw new Error(`Edge ${edge.id} references a missing node`);
     }
     if (edge.distanceMeters <= 0 || edge.durationSeconds <= 0) {
-      throw new Error(`Edge ${edge.id} must have positive distance and duration`);
+      throw new Error(
+        `Edge ${edge.id} must have positive distance and duration`,
+      );
     }
     this.assertRiskRange(edge);
     this.adjacency.get(edge.source)?.push(edge);

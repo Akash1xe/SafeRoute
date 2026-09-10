@@ -30,10 +30,16 @@ export class MinPriorityQueue<T> {
     let current = index;
     while (current > 0) {
       const parent = Math.floor((current - 1) / 2);
-      if ((this.heap[parent]?.priority ?? Infinity) <= (this.heap[current]?.priority ?? Infinity)) {
+      if (
+        (this.heap[parent]?.priority ?? Infinity) <=
+        (this.heap[current]?.priority ?? Infinity)
+      ) {
         break;
       }
-      [this.heap[parent], this.heap[current]] = [this.heap[current]!, this.heap[parent]!];
+      [this.heap[parent], this.heap[current]] = [
+        this.heap[current]!,
+        this.heap[parent]!,
+      ];
       current = parent;
     }
   }
@@ -44,14 +50,23 @@ export class MinPriorityQueue<T> {
       const left = current * 2 + 1;
       const right = left + 1;
       let smallest = current;
-      if ((this.heap[left]?.priority ?? Infinity) < (this.heap[smallest]?.priority ?? Infinity)) {
+      if (
+        (this.heap[left]?.priority ?? Infinity) <
+        (this.heap[smallest]?.priority ?? Infinity)
+      ) {
         smallest = left;
       }
-      if ((this.heap[right]?.priority ?? Infinity) < (this.heap[smallest]?.priority ?? Infinity)) {
+      if (
+        (this.heap[right]?.priority ?? Infinity) <
+        (this.heap[smallest]?.priority ?? Infinity)
+      ) {
         smallest = right;
       }
       if (smallest === current) return;
-      [this.heap[current], this.heap[smallest]] = [this.heap[smallest]!, this.heap[current]!];
+      [this.heap[current], this.heap[smallest]] = [
+        this.heap[smallest]!,
+        this.heap[current]!,
+      ];
       current = smallest;
     }
   }
