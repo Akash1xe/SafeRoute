@@ -77,9 +77,10 @@ export function incidentRouter(): Router {
     '/:id',
     validateParams(incidentIdSchema),
     asyncHandler(async (request, response) => {
+      const { id } = incidentIdSchema.parse(request.params);
       response
         .status(200)
-        .json({ data: { incident: await incidents.get(request.params.id) } });
+        .json({ data: { incident: await incidents.get(id) } });
     }),
   );
 
@@ -89,9 +90,10 @@ export function incidentRouter(): Router {
     validateParams(incidentIdSchema),
     validateBody(confirmationSchema),
     asyncHandler(async (request, response) => {
+      const { id } = incidentIdSchema.parse(request.params);
       const incident = await incidents.evaluate(
         response.locals.auth as RequestIdentity,
-        request.params.id,
+        id,
         request.body.decision,
       );
       response.status(200).json({ data: { incident } });
@@ -107,9 +109,10 @@ export function incidentRouter(): Router {
       authenticate,
       validateParams(incidentIdSchema),
       asyncHandler(async (request, response) => {
+        const { id } = incidentIdSchema.parse(request.params);
         const incident = await incidents.evaluate(
           response.locals.auth as RequestIdentity,
-          request.params.id,
+          id,
           decision,
         );
         response.status(200).json({ data: { incident } });
@@ -124,10 +127,8 @@ export function incidentRouter(): Router {
     validateParams(incidentIdSchema),
     validateBody(moderateIncidentSchema),
     asyncHandler(async (request, response) => {
-      const incident = await incidents.moderate(
-        request.params.id,
-        request.body.status,
-      );
+      const { id } = incidentIdSchema.parse(request.params);
+      const incident = await incidents.moderate(id, request.body.status);
       response.status(200).json({ data: { incident } });
     }),
   );

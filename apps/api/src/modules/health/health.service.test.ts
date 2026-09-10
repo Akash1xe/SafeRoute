@@ -12,8 +12,8 @@ describe('health service', () => {
     const result = await service.ready();
 
     expect(result.status).toBe('up');
-    expect(result.dependencies?.database.status).toBe('up');
-    expect(result.dependencies?.cache.status).toBe('up');
+    expect(result.dependencies?.database?.status).toBe('up');
+    expect(result.dependencies?.cache?.status).toBe('up');
   });
 
   it('reports not ready when a dependency fails', async () => {
@@ -27,6 +27,6 @@ describe('health service', () => {
     const result = await service.ready();
 
     expect(result.status).toBe('down');
-    expect(result.dependencies?.database.message).toBe('database unavailable');
+    expect(result.dependencies?.database?.message).toBe('database unavailable');
   });
 });
