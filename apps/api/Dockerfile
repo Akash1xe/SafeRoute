@@ -24,7 +24,8 @@ COPY --from=dependencies /app/packages/shared/node_modules ./packages/shared/nod
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY apps/api/package.json apps/api/package.json
+COPY apps/api/migrations apps/api/migrations
 COPY packages/shared/package.json packages/shared/package.json
 USER saferoute
 EXPOSE 4000
-CMD ["node", "apps/api/dist/server.js"]
+CMD ["sh", "-c", "node apps/api/dist/infrastructure/database/migrate.js && node apps/api/dist/server.js"]

@@ -40,6 +40,8 @@ services:
       DATABASE_URL: postgresql://saferoute:saferoute@postgres:5432/saferoute
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: info
+      JWT_ACCESS_SECRET: local-compose-secret-change-before-deployment
+      COOKIE_SECURE: "false"
     ports:
       - "4000:4000"
     depends_on:
