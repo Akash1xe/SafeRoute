@@ -5,7 +5,9 @@ export function shouldSuggestReroute(
   latestRoutes: readonly CalculatedRoute[],
 ): boolean {
   if (!currentRoute) return false;
-  const latestSafest = latestRoutes.find((route) => route.preference === 'SAFEST');
+  const latestSafest = latestRoutes.find(
+    (route) => route.preference === 'SAFEST',
+  );
   if (!latestSafest) return false;
   return routeSignature(currentRoute) !== routeSignature(latestSafest);
 }

@@ -66,7 +66,8 @@ export class RealtimeGateway {
     socket: Duplex,
     head: Buffer,
   ): void => {
-    const requestPath = new URL(request.url ?? '/', 'http://localhost').pathname;
+    const requestPath = new URL(request.url ?? '/', 'http://localhost')
+      .pathname;
     const origin = request.headers.origin;
     if (
       requestPath !== '/api/v1/realtime' ||

@@ -9,15 +9,13 @@ import {
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
-const REALTIME_URL =
-  process.env.NEXT_PUBLIC_WS_URL ?? toWebSocketUrl(API_URL);
+const REALTIME_URL = process.env.NEXT_PUBLIC_WS_URL ?? toWebSocketUrl(API_URL);
 
 export function useRealtimeSafety(
   onSafetyEvent: (event: SafetyRealtimeEvent) => void,
 ): RealtimeConnectionState {
   const callback = useRef(onSafetyEvent);
-  const [state, setState] =
-    useState<RealtimeConnectionState>('connecting');
+  const [state, setState] = useState<RealtimeConnectionState>('connecting');
 
   useEffect(() => {
     callback.current = onSafetyEvent;

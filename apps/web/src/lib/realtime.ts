@@ -1,7 +1,5 @@
 export type RealtimeConnectionState =
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting';
+  'connecting' | 'connected' | 'reconnecting';
 
 export type SafetyRealtimeEvent =
   | {
