@@ -46,7 +46,11 @@ export class UserRepository {
     return result.rows[0] ? mapUser(result.rows[0]) : null;
   }
 
-  async create(input: { name: string; email: string; passwordHash: string }): Promise<UserRecord> {
+  async create(input: {
+    name: string;
+    email: string;
+    passwordHash: string;
+  }): Promise<UserRecord> {
     try {
       const result = await this.database.query<UserRow>(
         `INSERT INTO users (name, email, password_hash)
@@ -59,7 +63,11 @@ export class UserRepository {
       return mapUser(user);
     } catch (error) {
       if (isPostgresError(error) && error.code === '23505') {
-        throw new AppError(409, 'EMAIL_ALREADY_REGISTERED', 'An account with this email exists');
+        throw new AppError(
+          409,
+          'EMAIL_ALREADY_REGISTERED',
+          'An account with this email exists',
+        );
       }
       throw error;
     }

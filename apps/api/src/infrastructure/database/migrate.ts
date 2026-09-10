@@ -32,8 +32,12 @@ async function migrate(): Promise<void> {
     const client = await postgres.connect();
     try {
       await client.query('BEGIN');
-      await client.query(await readFile(path.join(migrationsDirectory, migrationFile), 'utf8'));
-      await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [migrationFile]);
+      await client.query(
+        await readFile(path.join(migrationsDirectory, migrationFile), 'utf8'),
+      );
+      await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [
+        migrationFile,
+      ]);
       await client.query('COMMIT');
       logger.info({ migrationFile }, 'Database migration applied');
     } catch (error) {

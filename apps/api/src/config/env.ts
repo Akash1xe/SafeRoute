@@ -4,7 +4,9 @@ const developmentSecret = 'development-only-secret-change-me-now';
 
 const envSchema = z
   .object({
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    NODE_ENV: z
+      .enum(['development', 'test', 'production'])
+      .default('development'),
     API_PORT: z.coerce.number().int().positive().default(4000),
     WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
     DATABASE_URL: z
@@ -12,10 +14,22 @@ const envSchema = z
       .min(1)
       .default('postgresql://saferoute:saferoute@localhost:5432/saferoute'),
     REDIS_URL: z.string().min(1).default('redis://localhost:6379'),
-    LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+    LOG_LEVEL: z
+      .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
+      .default('info'),
     JWT_ACCESS_SECRET: z.string().min(32).default(developmentSecret),
-    ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().max(60).default(15),
-    REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().max(30).default(7),
+    ACCESS_TOKEN_TTL_MINUTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(60)
+      .default(15),
+    REFRESH_TOKEN_TTL_DAYS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .max(30)
+      .default(7),
     COOKIE_SECURE: z
       .enum(['true', 'false'])
       .default('false')

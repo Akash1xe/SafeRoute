@@ -18,7 +18,9 @@ describe('health service', () => {
 
   it('reports not ready when a dependency fails', async () => {
     const service = createHealthService({
-      checkPostgres: vi.fn().mockRejectedValue(new Error('database unavailable')),
+      checkPostgres: vi
+        .fn()
+        .mockRejectedValue(new Error('database unavailable')),
       checkRedis: vi.fn().mockResolvedValue(undefined),
     });
 

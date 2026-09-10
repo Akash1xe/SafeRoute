@@ -4,7 +4,10 @@ import { Router as createRouter } from 'express';
 import { env } from '../../config/env.js';
 import { AppError } from '../../errors/app-error.js';
 import { postgres } from '../../infrastructure/database/postgres.js';
-import { authenticate, type RequestIdentity } from '../../middleware/authenticate.js';
+import {
+  authenticate,
+  type RequestIdentity,
+} from '../../middleware/authenticate.js';
 import { asyncHandler } from '../../middleware/async-handler.js';
 import { validateBody } from '../../middleware/validate.js';
 import { UserRepository } from '../users/user.repository.js';
@@ -34,7 +37,9 @@ export function authRouter(): Router {
     asyncHandler(async (request, response) => {
       const result = await auth.register(request.body);
       response.cookie(REFRESH_COOKIE, result.refreshToken, cookieOptions);
-      response.status(201).json({ data: { accessToken: result.accessToken, user: result.user } });
+      response
+        .status(201)
+        .json({ data: { accessToken: result.accessToken, user: result.user } });
     }),
   );
 
@@ -44,7 +49,9 @@ export function authRouter(): Router {
     asyncHandler(async (request, response) => {
       const result = await auth.login(request.body);
       response.cookie(REFRESH_COOKIE, result.refreshToken, cookieOptions);
-      response.status(200).json({ data: { accessToken: result.accessToken, user: result.user } });
+      response
+        .status(200)
+        .json({ data: { accessToken: result.accessToken, user: result.user } });
     }),
   );
 
@@ -52,10 +59,17 @@ export function authRouter(): Router {
     '/refresh',
     asyncHandler(async (request, response) => {
       const token = request.cookies[REFRESH_COOKIE] as string | undefined;
-      if (!token) throw new AppError(401, 'REFRESH_TOKEN_REQUIRED', 'Refresh cookie is required');
+      if (!token)
+        throw new AppError(
+          401,
+          'REFRESH_TOKEN_REQUIRED',
+          'Refresh cookie is required',
+        );
       const result = await auth.refresh(token);
       response.cookie(REFRESH_COOKIE, result.refreshToken, cookieOptions);
-      response.status(200).json({ data: { accessToken: result.accessToken, user: result.user } });
+      response
+        .status(200)
+        .json({ data: { accessToken: result.accessToken, user: result.user } });
     }),
   );
 
@@ -74,7 +88,8 @@ export function authRouter(): Router {
     asyncHandler(async (_request, response) => {
       const identity = response.locals.auth as RequestIdentity;
       const user = await users.findById(identity.userId);
-      if (!user) throw new AppError(404, 'USER_NOT_FOUND', 'User no longer exists');
+      if (!user)
+        throw new AppError(404, 'USER_NOT_FOUND', 'User no longer exists');
       response.status(200).json({ data: { user: toPublicUser(user) } });
     }),
   );

@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { confirmationDecisions, incidentCategories, incidentStatuses } from './incident.types.js';
+import {
+  confirmationDecisions,
+  incidentCategories,
+  incidentStatuses,
+} from './incident.types.js';
 
 export const createIncidentSchema = z.object({
   category: z.enum(incidentCategories),
@@ -11,7 +15,10 @@ export const createIncidentSchema = z.object({
   evidenceUrl: z.string().url().max(2048).optional(),
   expiresAt: z.coerce
     .date()
-    .refine((date) => date.getTime() > Date.now(), 'Expiration must be in the future')
+    .refine(
+      (date) => date.getTime() > Date.now(),
+      'Expiration must be in the future',
+    )
     .optional(),
 });
 

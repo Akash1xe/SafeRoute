@@ -3,7 +3,11 @@ import type { Pool, PoolClient } from 'pg';
 export class SessionRepository {
   constructor(private readonly database: Pool) {}
 
-  async create(userId: string, tokenHash: string, expiresAt: Date): Promise<void> {
+  async create(
+    userId: string,
+    tokenHash: string,
+    expiresAt: Date,
+  ): Promise<void> {
     await this.database.query(
       `INSERT INTO auth_sessions (user_id, refresh_token_hash, expires_at)
        VALUES ($1, $2, $3)`,
@@ -11,7 +15,11 @@ export class SessionRepository {
     );
   }
 
-  async rotate(oldHash: string, newHash: string, expiresAt: Date): Promise<string | null> {
+  async rotate(
+    oldHash: string,
+    newHash: string,
+    expiresAt: Date,
+  ): Promise<string | null> {
     const client = await this.database.connect();
     try {
       await client.query('BEGIN');
@@ -76,7 +84,11 @@ export class SessionRepository {
   }
 }
 
-async function revokeAll(client: PoolClient, userId: string, reason: string): Promise<void> {
+async function revokeAll(
+  client: PoolClient,
+  userId: string,
+  reason: string,
+): Promise<void> {
   await client.query(
     `UPDATE auth_sessions SET revoked_at = NOW(), revoke_reason = $2
      WHERE user_id = $1 AND revoked_at IS NULL`,

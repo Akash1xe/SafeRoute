@@ -9,7 +9,10 @@ describe('API foundation', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers['x-request-id']).toBeTypeOf('string');
-    expect(response.body.data).toMatchObject({ status: 'up', service: 'saferoute-api' });
+    expect(response.body.data).toMatchObject({
+      status: 'up',
+      service: 'saferoute-api',
+    });
   });
 
   it('returns a consistent not-found response', async () => {

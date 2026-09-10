@@ -7,7 +7,10 @@ import type {
   IncidentCategory,
   IncidentStatus,
 } from './incident.types.js';
-import type { CreateIncidentInput, NearbyIncidentsInput } from './incident.schemas.js';
+import type {
+  CreateIncidentInput,
+  NearbyIncidentsInput,
+} from './incident.schemas.js';
 
 interface IncidentRow {
   id: string;
@@ -51,14 +54,19 @@ function mapIncident(row: IncidentRow): Incident {
     disputeCount: row.dispute_count,
     expiresAt: row.expires_at,
     createdAt: row.created_at,
-    ...(row.distance_meters === undefined ? {} : { distanceMeters: Number(row.distance_meters) }),
+    ...(row.distance_meters === undefined
+      ? {}
+      : { distanceMeters: Number(row.distance_meters) }),
   };
 }
 
 export class IncidentRepository {
   constructor(private readonly database: Pool) {}
 
-  async create(reporterId: string, input: CreateIncidentInput): Promise<Incident> {
+  async create(
+    reporterId: string,
+    input: CreateIncidentInput,
+  ): Promise<Incident> {
     const result = await this.database.query<IncidentRow>(
       `INSERT INTO incident_reports
         (reporter_id, category, description, severity, location, evidence_url, expires_at)
@@ -121,9 +129,18 @@ export class IncidentRepository {
         'SELECT reporter_id FROM incident_reports WHERE id = $1 FOR UPDATE',
         [reportId],
       );
-      if (!report.rows[0]) throw new AppError(404, 'INCIDENT_NOT_FOUND', 'Incident report not found');
+      if (!report.rows[0])
+        throw new AppError(
+          404,
+          'INCIDENT_NOT_FOUND',
+          'Incident report not found',
+        );
       if (report.rows[0].reporter_id === userId) {
-        throw new AppError(409, 'SELF_CONFIRMATION_NOT_ALLOWED', 'You cannot evaluate your own report');
+        throw new AppError(
+          409,
+          'SELF_CONFIRMATION_NOT_ALLOWED',
+          'You cannot evaluate your own report',
+        );
       }
 
       await client.query(
@@ -136,7 +153,11 @@ export class IncidentRepository {
     } catch (error) {
       await client.query('ROLLBACK');
       if (isPostgresError(error) && error.code === '23505') {
-        throw new AppError(409, 'REPORT_ALREADY_EVALUATED', 'You already evaluated this report');
+        throw new AppError(
+          409,
+          'REPORT_ALREADY_EVALUATED',
+          'You already evaluated this report',
+        );
       }
       throw error;
     } finally {
@@ -151,7 +172,12 @@ export class IncidentRepository {
       [id, status],
     );
     const incident = result.rows[0];
-    if (!incident) throw new AppError(404, 'INCIDENT_NOT_FOUND', 'Incident report not found');
+    if (!incident)
+      throw new AppError(
+        404,
+        'INCIDENT_NOT_FOUND',
+        'Incident report not found',
+      );
     return mapIncident(incident);
   }
 }
@@ -161,14 +187,16 @@ async function updateDecisionCounts(
   reportId: string,
   decision: ConfirmationDecision,
 ): Promise<IncidentRow> {
-  const column = decision === 'CONFIRM' ? 'confirmation_count' : 'dispute_count';
+  const column =
+    decision === 'CONFIRM' ? 'confirmation_count' : 'dispute_count';
   const result = await client.query<IncidentRow>(
     `UPDATE incident_reports SET ${column} = ${column} + 1, updated_at = NOW()
      WHERE id = $1 RETURNING ${incidentColumns}`,
     [reportId],
   );
   const row = result.rows[0];
-  if (!row) throw new AppError(404, 'INCIDENT_NOT_FOUND', 'Incident report not found');
+  if (!row)
+    throw new AppError(404, 'INCIDENT_NOT_FOUND', 'Incident report not found');
   return row;
 }
 

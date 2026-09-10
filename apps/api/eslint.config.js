@@ -9,7 +9,10 @@ export default tseslint.config(
     files: ['src/**/*.ts'],
     languageOptions: {
       globals: globals.node,
-      parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     rules: {
       '@typescript-eslint/consistent-type-imports': 'error',

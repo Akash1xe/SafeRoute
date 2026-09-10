@@ -4,7 +4,12 @@ import { ZodError } from 'zod';
 import { logger } from '../config/logger.js';
 import { AppError } from '../errors/app-error.js';
 
-export const errorHandler: ErrorRequestHandler = (error, request, response, _next) => {
+export const errorHandler: ErrorRequestHandler = (
+  error,
+  request,
+  response,
+  _next,
+) => {
   void _next;
 
   if (error instanceof ZodError) {
@@ -31,7 +36,10 @@ export const errorHandler: ErrorRequestHandler = (error, request, response, _nex
     return;
   }
 
-  logger.error({ error, requestId: String(request.id) }, 'Unhandled request error');
+  logger.error(
+    { error, requestId: String(request.id) },
+    'Unhandled request error',
+  );
 
   response.status(500).json({
     error: {

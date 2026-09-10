@@ -24,7 +24,8 @@ export function createApp(): Express {
     pinoHttp({
       logger,
       genReqId(request, response) {
-        const requestId = request.headers['x-request-id']?.toString() ?? randomUUID();
+        const requestId =
+          request.headers['x-request-id']?.toString() ?? randomUUID();
         response.setHeader('x-request-id', requestId);
         return requestId;
       },

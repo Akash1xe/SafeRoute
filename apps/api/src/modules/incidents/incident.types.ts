@@ -9,7 +9,12 @@ export const incidentCategories = [
   'OTHER',
 ] as const;
 
-export const incidentStatuses = ['PENDING', 'VERIFIED', 'REJECTED', 'EXPIRED'] as const;
+export const incidentStatuses = [
+  'PENDING',
+  'VERIFIED',
+  'REJECTED',
+  'EXPIRED',
+] as const;
 export const confirmationDecisions = ['CONFIRM', 'DISPUTE'] as const;
 
 export type IncidentCategory = (typeof incidentCategories)[number];

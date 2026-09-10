@@ -12,6 +12,8 @@ describe('password hashing', () => {
   });
 
   it('rejects malformed stored hashes', async () => {
-    await expect(verifyPassword('SafePassword123', 'invalid')).resolves.toBe(false);
+    await expect(verifyPassword('SafePassword123', 'invalid')).resolves.toBe(
+      false,
+    );
   });
 });

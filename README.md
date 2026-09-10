@@ -114,7 +114,7 @@ pnpm test
 pnpm build
 ```
 
-The first successful dependency installation generates `pnpm-lock.yaml`; commit it before changing dependencies further so local, Docker, and CI installations remain reproducible.
+The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reproducible.
 
 ## Planned phases
 

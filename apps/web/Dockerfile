@@ -6,7 +6,7 @@ FROM base AS dependencies
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/shared/package.json packages/shared/package.json
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS builder
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1

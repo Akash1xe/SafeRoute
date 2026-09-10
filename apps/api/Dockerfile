@@ -6,7 +6,7 @@ FROM base AS dependencies
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/api/package.json apps/api/package.json
 COPY packages/shared/package.json packages/shared/package.json
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS builder
 COPY tsconfig.base.json ./

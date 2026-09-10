@@ -3,9 +3,17 @@ import { Router as createRouter } from 'express';
 import { rateLimit } from 'express-rate-limit';
 
 import { postgres } from '../../infrastructure/database/postgres.js';
-import { authenticate, authorize, type RequestIdentity } from '../../middleware/authenticate.js';
+import {
+  authenticate,
+  authorize,
+  type RequestIdentity,
+} from '../../middleware/authenticate.js';
 import { asyncHandler } from '../../middleware/async-handler.js';
-import { validateBody, validateParams, validateQuery } from '../../middleware/validate.js';
+import {
+  validateBody,
+  validateParams,
+  validateQuery,
+} from '../../middleware/validate.js';
 import {
   confirmationSchema,
   createIncidentSchema,
@@ -23,7 +31,12 @@ const reportCreationLimiter = rateLimit({
   limit: 10,
   standardHeaders: 'draft-8',
   legacyHeaders: false,
-  message: { error: { code: 'RATE_LIMITED', message: 'Too many incident reports submitted' } },
+  message: {
+    error: {
+      code: 'RATE_LIMITED',
+      message: 'Too many incident reports submitted',
+    },
+  },
 });
 
 export function incidentRouter(): Router {
@@ -35,7 +48,10 @@ export function incidentRouter(): Router {
     reportCreationLimiter,
     validateBody(createIncidentSchema),
     asyncHandler(async (request, response) => {
-      const incident = await incidents.create(response.locals.auth as RequestIdentity, request.body);
+      const incident = await incidents.create(
+        response.locals.auth as RequestIdentity,
+        request.body,
+      );
       response.status(201).json({ data: { incident } });
     }),
   );
@@ -48,7 +64,11 @@ export function incidentRouter(): Router {
       const results = await incidents.nearby(query);
       response.status(200).json({
         data: { incidents: results },
-        pagination: { page: query.page, limit: query.limit, returned: results.length },
+        pagination: {
+          page: query.page,
+          limit: query.limit,
+          returned: results.length,
+        },
       });
     }),
   );
@@ -57,7 +77,9 @@ export function incidentRouter(): Router {
     '/:id',
     validateParams(incidentIdSchema),
     asyncHandler(async (request, response) => {
-      response.status(200).json({ data: { incident: await incidents.get(request.params.id) } });
+      response
+        .status(200)
+        .json({ data: { incident: await incidents.get(request.params.id) } });
     }),
   );
 
@@ -102,7 +124,10 @@ export function incidentRouter(): Router {
     validateParams(incidentIdSchema),
     validateBody(moderateIncidentSchema),
     asyncHandler(async (request, response) => {
-      const incident = await incidents.moderate(request.params.id, request.body.status);
+      const incident = await incidents.moderate(
+        request.params.id,
+        request.body.status,
+      );
       response.status(200).json({ data: { incident } });
     }),
   );

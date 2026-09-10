@@ -12,7 +12,9 @@ export interface AccessIdentity {
   role: UserRole;
 }
 
-export async function createAccessToken(identity: AccessIdentity): Promise<string> {
+export async function createAccessToken(
+  identity: AccessIdentity,
+): Promise<string> {
   return new SignJWT({ role: identity.role })
     .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
     .setSubject(identity.userId)
@@ -23,13 +25,18 @@ export async function createAccessToken(identity: AccessIdentity): Promise<strin
     .sign(accessSecret);
 }
 
-export async function verifyAccessToken(token: string): Promise<AccessIdentity> {
+export async function verifyAccessToken(
+  token: string,
+): Promise<AccessIdentity> {
   const { payload } = await jwtVerify(token, accessSecret, {
     issuer: 'saferoute-api',
     audience: 'saferoute-web',
   });
 
-  if (!payload.sub || !['USER', 'MODERATOR', 'ADMIN'].includes(String(payload.role))) {
+  if (
+    !payload.sub ||
+    !['USER', 'MODERATOR', 'ADMIN'].includes(String(payload.role))
+  ) {
     throw new Error('Invalid access-token claims');
   }
 

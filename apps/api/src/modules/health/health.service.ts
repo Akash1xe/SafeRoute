@@ -10,12 +10,16 @@ async function measure(check: () => Promise<void>): Promise<DependencyHealth> {
 
   try {
     await check();
-    return { status: 'up', latencyMs: Math.round(performance.now() - startedAt) };
+    return {
+      status: 'up',
+      latencyMs: Math.round(performance.now() - startedAt),
+    };
   } catch (error) {
     return {
       status: 'down',
       latencyMs: Math.round(performance.now() - startedAt),
-      message: error instanceof Error ? error.message : 'Unknown dependency error',
+      message:
+        error instanceof Error ? error.message : 'Unknown dependency error',
     };
   }
 }
@@ -36,7 +40,8 @@ export function createHealthService(dependencies: HealthDependencies) {
         measure(dependencies.checkPostgres),
         measure(dependencies.checkRedis),
       ]);
-      const status = database.status === 'up' && cache.status === 'up' ? 'up' : 'down';
+      const status =
+        database.status === 'up' && cache.status === 'up' ? 'up' : 'down';
 
       return {
         status,
