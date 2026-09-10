@@ -11,6 +11,22 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5-alpine
+        env:
+          POSTGRES_DB: saferoute
+          POSTGRES_USER: saferoute
+          POSTGRES_PASSWORD: saferoute
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U saferoute -d saferoute"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://saferoute:saferoute@localhost:5432/saferoute
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -20,6 +36,7 @@ jobs:
         with:
           node-version: 22
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @saferoute/api db:migrate
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
