@@ -14,6 +14,7 @@ export interface UserRecord {
 export type PublicUser = Omit<UserRecord, 'passwordHash'>;
 
 export function toPublicUser(user: UserRecord): PublicUser {
-  const { passwordHash: _passwordHash, ...publicUser } = user;
+  const { passwordHash, ...publicUser } = user;
+  void passwordHash;
   return publicUser;
 }

@@ -42,6 +42,7 @@ export interface Incident {
 export type PublicIncident = Omit<Incident, 'reporterId'>;
 
 export function toPublicIncident(incident: Incident): PublicIncident {
-  const { reporterId: _reporterId, ...publicIncident } = incident;
+  const { reporterId, ...publicIncident } = incident;
+  void reporterId;
   return publicIncident;
 }
