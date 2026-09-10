@@ -1,11 +1,11 @@
 import type { Router } from 'express';
 import { Router as createRouter } from 'express';
-import { rateLimit } from 'express-rate-limit';
 
 import { postgres } from '../../infrastructure/database/postgres.js';
 import { redis } from '../../infrastructure/redis/redis.js';
 import { env } from '../../config/env.js';
 import { asyncHandler } from '../../middleware/async-handler.js';
+import { createApiRateLimiter } from '../../middleware/rate-limit.js';
 import { validateBody } from '../../middleware/validate.js';
 import { RoadGraphRepository } from './road-graph.repository.js';
 import { calculateRouteSchema } from './route.schemas.js';
@@ -19,15 +19,11 @@ const routes = new RouteService(
   new RedisRouteCache(redis, env.ROUTE_CACHE_TTL_SECONDS),
 );
 
-const routeCalculationLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 60,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  message: {
-    error: { code: 'RATE_LIMITED', message: 'Too many route calculations' },
-  },
-});
+const routeCalculationLimiter = createApiRateLimiter(
+  60 * 1000,
+  60,
+  'Too many route calculations',
+);
 
 export function routeRouter(): Router {
   const router = createRouter();

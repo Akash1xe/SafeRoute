@@ -41,6 +41,7 @@ services:
       REDIS_URL: redis://redis:6379
       LOG_LEVEL: info
       JWT_ACCESS_SECRET: local-compose-secret-change-before-deployment
+      METRICS_TOKEN: local-compose-metrics-token-change-before-deployment
       COOKIE_SECURE: 'false'
     ports:
       - '4000:4000'

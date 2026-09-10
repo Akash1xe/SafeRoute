@@ -1,6 +1,5 @@
 import type { Router } from 'express';
 import { Router as createRouter } from 'express';
-import { rateLimit } from 'express-rate-limit';
 
 import { postgres } from '../../infrastructure/database/postgres.js';
 import { SafetyJobDispatcher } from '../../infrastructure/jobs/safety-job.dispatcher.js';
@@ -10,6 +9,7 @@ import {
   type RequestIdentity,
 } from '../../middleware/authenticate.js';
 import { asyncHandler } from '../../middleware/async-handler.js';
+import { createApiRateLimiter } from '../../middleware/rate-limit.js';
 import {
   validateBody,
   validateParams,
@@ -30,18 +30,11 @@ const incidents = new IncidentService(
   new SafetyJobDispatcher(),
 );
 
-const reportCreationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 10,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  message: {
-    error: {
-      code: 'RATE_LIMITED',
-      message: 'Too many incident reports submitted',
-    },
-  },
-});
+const reportCreationLimiter = createApiRateLimiter(
+  15 * 60 * 1000,
+  10,
+  'Too many incident reports submitted',
+);
 
 export function incidentRouter(): Router {
   const router = createRouter();

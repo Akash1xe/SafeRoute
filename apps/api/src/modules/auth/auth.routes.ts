@@ -9,6 +9,7 @@ import {
   type RequestIdentity,
 } from '../../middleware/authenticate.js';
 import { asyncHandler } from '../../middleware/async-handler.js';
+import { createApiRateLimiter } from '../../middleware/rate-limit.js';
 import { validateBody } from '../../middleware/validate.js';
 import { UserRepository } from '../users/user.repository.js';
 import { toPublicUser } from '../users/user.types.js';
@@ -19,6 +20,11 @@ import { SessionRepository } from './session.repository.js';
 const users = new UserRepository(postgres);
 const auth = new AuthService(users, new SessionRepository(postgres));
 const REFRESH_COOKIE = 'saferoute_refresh';
+const authAttemptLimiter = createApiRateLimiter(
+  15 * 60 * 1000,
+  env.AUTH_RATE_LIMIT_MAX,
+  'Too many authentication attempts',
+);
 
 const cookieOptions: CookieOptions = {
   httpOnly: true,
@@ -33,6 +39,7 @@ export function authRouter(): Router {
 
   router.post(
     '/register',
+    authAttemptLimiter,
     validateBody(registerSchema),
     asyncHandler(async (request, response) => {
       const result = await auth.register(request.body);
@@ -45,6 +52,7 @@ export function authRouter(): Router {
 
   router.post(
     '/login',
+    authAttemptLimiter,
     validateBody(loginSchema),
     asyncHandler(async (request, response) => {
       const result = await auth.login(request.body);
@@ -57,6 +65,7 @@ export function authRouter(): Router {
 
   router.post(
     '/refresh',
+    authAttemptLimiter,
     asyncHandler(async (request, response) => {
       const token = request.cookies[REFRESH_COOKIE] as string | undefined;
       if (!token)

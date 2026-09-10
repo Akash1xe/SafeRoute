@@ -25,6 +25,48 @@ const envSchema = z
       .int()
       .min(60_000)
       .default(300_000),
+    API_RATE_LIMIT_WINDOW_MS: z.coerce
+      .number()
+      .int()
+      .min(1_000)
+      .default(60_000),
+    API_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(300),
+    AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(20),
+    REQUEST_BODY_LIMIT: z
+      .string()
+      .regex(/^\d+(kb|mb)$/i)
+      .default('64kb'),
+    HTTP_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1_000).default(15_000),
+    SLOW_REQUEST_THRESHOLD_MS: z.coerce.number().int().positive().default(750),
+    GRACEFUL_SHUTDOWN_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(1_000)
+      .default(10_000),
+    POSTGRES_POOL_MAX: z.coerce.number().int().positive().max(100).default(20),
+    POSTGRES_STATEMENT_TIMEOUT_MS: z.coerce
+      .number()
+      .int()
+      .min(1_000)
+      .default(10_000),
+    WS_MAX_CONNECTIONS: z.coerce.number().int().positive().default(1_000),
+    WS_MAX_CONNECTIONS_PER_IP: z.coerce.number().int().positive().default(10),
+    WS_MAX_PAYLOAD_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .max(1_048_576)
+      .default(4_096),
+    WS_MAX_BUFFERED_BYTES: z.coerce
+      .number()
+      .int()
+      .min(1_024)
+      .default(1_048_576),
+    METRICS_TOKEN: z.string().min(32).optional(),
+    TRUST_PROXY: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
     LOG_LEVEL: z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
       .default('info'),

@@ -11,6 +11,7 @@
     "dev": "pnpm --parallel --filter @saferoute/api --filter @saferoute/web dev",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "load:test": "node scripts/load-test.mjs",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck"

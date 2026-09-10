@@ -2,7 +2,7 @@
 
 SafeRoute is a community safety navigation platform that will recommend **fastest**, **balanced**, and **safest** routes using geospatial risk data and a dynamically weighted road graph.
 
-> Current status: Phases 1–7 are implemented. Production hardening is next in Phase 8.
+> Current status: Phases 1–8 are implemented. The planned production build is complete.
 
 ## Technical identity
 
@@ -61,6 +61,9 @@ Kafka and an API gateway are intentionally excluded. PostgreSQL/PostGIS will han
 - origin-checked WebSocket gateway with heartbeat-based stale-client cleanup
 - browser reconnection with bounded exponential backoff and live status feedback
 - user-controlled rerouting suggestions when the safest path changes
+- protected Prometheus metrics for HTTP latency, traffic, process health, and realtime delivery
+- layered API/auth/report/route rate limits and bounded WebSocket capacity/backpressure
+- production database indexes, query timeouts, bounded request bodies, and shutdown deadlines
 
 ## Core API
 
@@ -80,6 +83,7 @@ PATCH /api/v1/incidents/:id/status
 
 GET   /api/v1/routes/nodes
 POST  /api/v1/routes/calculate
+GET   /api/v1/metrics (dedicated bearer token)
 WS    /api/v1/realtime
 ```
 
@@ -206,18 +210,49 @@ The committed `pnpm-lock.yaml` keeps local, Docker, and CI installations reprodu
 5. **Background processing** — complete
 6. **Map experience** — complete
 7. **Real-time navigation** — complete
-8. **Production hardening** — rate limits, metrics, indexes, performance tests
+8. **Production hardening** — complete
+
+All eight planned phases are complete.
+
+## Production operations
+
+Set `METRICS_TOKEN` to a dedicated random secret, then scrape:
+
+```text
+GET /api/v1/metrics
+Authorization: Bearer <METRICS_TOKEN>
+```
+
+The Prometheus response includes HTTP request counts and latency histograms,
+in-flight requests, WebSocket connections and rejections, realtime deliveries,
+dropped slow-client events, process uptime, and resident memory.
+
+Run an honest load test against a running environment instead of placing estimated
+performance numbers on a resume:
+
+```bash
+LOAD_TEST_URL=http://localhost:4000/api/v1/health/live \
+LOAD_TEST_DURATION_SECONDS=30 \
+LOAD_TEST_CONCURRENCY=50 \
+pnpm load:test
+```
+
+The command prints JSON with measured requests/second, p50/p95/p99 latency,
+status counts, and error rate. Optional `LOAD_TEST_MAX_P95_MS` and
+`LOAD_TEST_MAX_ERROR_RATE` thresholds make the command suitable for a deployment
+gate. For a route test, set `LOAD_TEST_METHOD=POST` and provide a JSON
+`LOAD_TEST_BODY` for `/api/v1/routes/calculate`.
 
 ## Current trade-offs
 
 - SQL is explicit and repository-based so spatial behavior is visible and not limited by an ORM’s geography support.
 - Redis supports route caching, BullMQ, and cross-instance real-time safety events.
 - The map is a dependency-free projection of the seeded road graph. A production deployment can replace this renderer with vector tiles while preserving the route and incident APIs.
-- Phase 7 broadcasts network-wide safety invalidations. Geographic WebSocket rooms are a production optimization once the graph covers a larger service area.
+- Realtime safety invalidations are network-wide, but connection limits and slow-client backpressure keep each instance bounded. Geographic rooms are the next scaling step when the graph covers a larger service area.
 - Docker Compose uses local development credentials. Production credentials must come from a secret manager.
 - Incident writes and route-risk updates are eventually consistent because BullMQ keeps spatial recalculation off the HTTP request path.
 - Failed background jobs remain in Redis for diagnosis after five exponential-backoff attempts. A transactional outbox is a possible production-hardening addition when strict enqueue guarantees are required.
-- Phase 5 still loads the small development graph as one in-memory adjacency list on a route-cache miss. Bounded graph loading belongs to production-scale work.
+- The small development graph still loads as one in-memory adjacency list on a route-cache miss. Regional graph partitioning is the next scaling step for a city-wide dataset.
 
 ## Safety and privacy direction
 
